@@ -12,6 +12,8 @@ import json
 import wordninja
 import numpy as np
 
+# commento di Rosario
+
 ita_moji = pd.read_csv('./data/italianMoji.csv',sep=';')
 lm = wordninja.LanguageModel('./data/words.last_all.txt.gz')
 
