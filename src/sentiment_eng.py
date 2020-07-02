@@ -11,11 +11,10 @@ import os
 import json
 import wordninja
 import numpy as np
-
+import html
 # commento di Rosario
 
-ita_moji = pd.read_csv('./data/italianMoji.csv',sep=';')
-lm = wordninja.LanguageModel('./data/words.last_all.txt.gz')
+#lm = wordninja.LanguageModel()
 
 def add_pred_pos (row,model,task):
   predictions, raw_outputs = model.predict([row.text_preprocessed])
@@ -31,10 +30,10 @@ def trainer(train_df,OUTPUT_DIR,preproc,args):
         model_param = json.loads(f.read())
     model_param['output_dir'] = OUTPUT_DIR
     print(model_param)
-    model_name = 'dbmdz/bert-base-italian-xxl-uncased'
+    model_name = 'bert-large-uncased'
     if preproc == 'alberto':
         model_name = 'm-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0'
-    model = ClassificationModel('bert', model_name, args=model_param)
+    model = ClassificationModel('bert', model_name, args=model_param,num_labels=3)
     model.train_model(train_df);
     return model
 
@@ -54,149 +53,150 @@ def tester(model,task,test_df,preproc,runName):
 def load_dict_emoticon():
     
     return {
-        ":‑)":"felice",
-        ": ‑)":"felice",
-        ": ‑ )":"felice",
-        ":-]":"felice",
-        ": - ]":"felice",
-        ": -]":"felice",
-        ":-3":"felice",
-        ": - 3":"felice",
-        ": -3":"felice",
-        ":->":"felice",
-        ": - >":"felice",
-        ": ->":"felice",
-        "8-)":"felice",
-        "8 -)":"felice",
-        "8 - )":"felice",
-        ":-}":"felice",
-        ": - }":"felice",
-        ": -}":"felice",
-        ":)":"felice",
-        ": )":"felice",
-        ":]":"felice",
-        ": ]":"felice",
-        ":3":"felice",
-        ": 3":"felice",
-        ":>":"felice",
-        ": >":"felice",
-        "8)":"felice",
-        "8 )":"felice",
-        ":}":"felice",
-        ": }":"felice",
-        ":o)":"felice",
-        ":o )":"felice",
-        ": o )":"felice",
-        ":c)":"felice",
-        ": c )":"felice",
-        ":c )":"felice",
-        ":^)":"felice",
-        ": ^ )":"felice",
-        ": ^)":"felice",
-        "=]":"felice",
-        "= ]":"felice",
-        "=)":"felice",
-        "= )":"felice",
-        ":-))":"felice",
-        ": - ) )":"felice",
-        ":- ) )":"felice",
-        ":- ))":"felice",
-        ": -))":"felice",
-        ":‑D":"felice",
-        ": ‑ D":"felice",
-        ": ‑D":"felice",
-        "8‑D":"felice",
-        "8 ‑D":"felice",
-        "8 ‑ D":"felice",
-        "x‑D":"felice",
-        "x ‑ D":"felice",
-        "x ‑D":"felice",
-        "X‑D":"felice",
-        "X ‑ D":"felice",
-        "X ‑D":"felice",
-        ":D":"felice",
-        ": D":"felice",
-        "8D":"felice",
-        "8 D":"felice",
-        "xD":"felice",
-        "x D":"felice",
-        "XD":"felice",
-        "X D":"felice",
-        ":‑(":"triste",
-        ": ‑(":"triste",
-        ": ‑ (":"triste",
-        ":‑c":"triste",
-        ": ‑c":"triste",
-        ":‑<":"triste",
-        ": ‑ <":"triste",
-        ":‑[":"triste",
-        ": ‑ [":"triste",
-        ":(":"triste",
-        ": (":"triste",
-        ":c":"triste",
-        ": c":"triste",
-        ":<":"triste",
-        ": <":"triste",
-        ":[":"triste",
-        ": [":"triste",
-        ":-||":"triste",
-        ": - | |":"triste",
-        ": - ||":"triste",
-        ": -||":"triste",
-        ": -| |":"triste",
-        ">:[":"triste",
-        ">: [":"triste",
-        "> : [":"triste",
-        ":{":"triste",
-        ": {":"triste",
-        ":@":"triste",
-        ": @":"triste",
-        ">:(":"triste",
-        "> : (":"triste",
-        ":'‑(":"triste",
-        ": '‑(":"triste",
-        ": ' ‑(":"triste",
-        ": ' ‑ (":"triste",
-        ":'(":"triste",
-        ": ' (":"triste",
-        ": '(":"triste",
-        ":‑P":"scherzoso",
-        ": ‑P":"scherzoso",
-        ": ‑ P":"scherzoso",
-        "X‑P":"scherzoso",
-        "X ‑ P":"scherzoso",
-        "X ‑P":"scherzoso",
-        "x‑p":"scherzoso",
-        "x ‑p":"scherzoso",
-        ":‑p":"scherzoso",
-        ": ‑p":"scherzoso",
-        ": ‑ p":"scherzoso",
-        ":‑Þ":"scherzoso",
-        ": ‑ Þ":"scherzoso",
-        ":‑þ":"scherzoso",
-        ": ‑þ":"scherzoso",
-        ":‑b":"scherzoso",
-        ": ‑ b":"scherzoso",
-        ": ‑b":"scherzoso",
-        ":P":"scherzoso",
-        ": P":"scherzoso",
-        "XP":"scherzoso",
-        "X P":"scherzoso",
-        "xp":"scherzoso",
-        "x p":"scherzoso",
-        ":p":"scherzoso",
-        ": p":"scherzoso",
-        ":Þ":"scherzoso",
-        ": Þ":"scherzoso",
-        ":þ":"scherzoso",
-        ": þ":"scherzoso",
-        ":b":"scherzoso",
-        ": b":"scherzoso",
-        "<3":"amore",
-        "< 3":"amore",
-        ":*":"amore",
-        ": *":"amore"
+        ":‑)":"happy",
+        ": ‑)":"happy",
+        ": ‑ )":"happy",
+        ":-]":"happy",
+        ": - ]":"happy",
+        ": -]":"happy",
+        ":-3":"happy",
+        ": - 3":"happy",
+        ": -3":"happy",
+        ":->":"happy",
+        ": - >":"happy",
+        ": ->":"happy",
+        "8-)":"happy",
+        "8 -)":"happy",
+        "8 - )":"happy",
+        ":-}":"happy",
+        ": - }":"happy",
+        ": -}":"happy",
+        ":)":"happy",
+        ": )":"happy",
+        ":]":"happy",
+        ": ]":"happy",
+        ":3":"happy",
+        ": 3":"happy",
+        ":>":"happy",
+        ": >":"happy",
+        "8)":"happy",
+        "8 )":"happy",
+        ":}":"happy",
+        ": }":"happy",
+        ":o)":"happy",
+        ":o )":"happy",
+        ": o )":"happy",
+        ":c)":"happy",
+        ": c )":"happy",
+        ":c )":"happy",
+        ":^)":"happy",
+        ": ^ )":"happy",
+        ": ^)":"happy",
+        "=]":"happy",
+        "= ]":"happy",
+        "=)":"happy",
+        "= )":"happy",
+        ":-))":"happy",
+        ": - ) )":"happy",
+        ":- ) )":"happy",
+        ":- ))":"happy",
+        ": -))":"happy",
+        ":‑D":"happy",
+        ": ‑ D":"happy",
+        ": ‑D":"happy",
+        "8‑D":"happy",
+        "8 ‑D":"happy",
+        "8 ‑ D":"happy",
+        "x‑D":"happy",
+        "x ‑ D":"happy",
+        "x ‑D":"happy",
+        "X‑D":"happy",
+        "X ‑ D":"happy",
+        "X ‑D":"happy",
+        ":D":"happy",
+        ": D":"happy",
+        "8D":"happy",
+        "8 D":"happy",
+        "xD":"happy",
+        "x D":"happy",
+        "XD":"happy",
+        "X D":"happy",
+        ":‑(":"sad",
+        ": ‑(":"sad",
+        ": ‑ (":"sad",
+        ":‑c":"sad",
+        ": ‑c":"sad",
+        ":‑<":"sad",
+        ": ‑ <":"sad",
+        ":‑[":"sad",
+        ": ‑ [":"sad",
+        ":(":"sad",
+        ": (":"sad",
+        ":c":"sad",
+        ": c":"sad",
+        ":<":"sad",
+        ": <":"sad",
+        ":[":"sad",
+        ": [":"sad",
+        ":-||":"sad",
+        ": - | |":"sad",
+        ": - ||":"sad",
+        ": -||":"sad",
+        ": -| |":"sad",
+        ">:[":"sad",
+        ">: [":"sad",
+        "> : [":"sad",
+        ":{":"sad",
+        ": {":"sad",
+        ":@":"sad",
+        ": @":"sad",
+        ">:(":"sad",
+        "> : (":"sad",
+        ":'‑(":"sad",
+        ": '‑(":"sad",
+        ": ' ‑(":"sad",
+        ": ' ‑ (":"sad",
+        ":'(":"sad",
+        ": ' (":"sad",
+        ": '(":"sad",
+        ":‑P":"playful",
+        ": ‑P":"playful",
+        ": ‑ P":"playful",
+        "X‑P":"playful",
+        "X ‑ P":"playful",
+        "X ‑P":"playful",
+        "x‑p":"playful",
+        "x ‑p":"playful",
+        ":‑p":"playful",
+        ": ‑p":"playful",
+        ": ‑ p":"playful",
+        ":‑Þ":"playful",
+        ": ‑ Þ":"playful",
+        ":‑þ":"playful",
+        ": ‑þ":"playful",
+        ":‑b":"playful",
+        ": ‑ b":"playful",
+        ": ‑b":"playful",
+        ":P":"playful",
+        ": P":"playful",
+        "XP":"playful",
+        "X P":"playful",
+        "xp":"playful",
+        "x p":"playful",
+        ":p":"playful",
+        ": p":"playful",
+        ":Þ":"playful",
+        ": Þ":"playful",
+        ":þ":"playful",
+        ": þ":"playful",
+        ":b":"playful",
+        ": b":"playful",
+        "<3":"love",
+        "< 3":"love",
+        ":*":"love",
+        ": *":"love"
         }
+
 
 def albertoPreprocessing(row,text_processor) :     
     s = row.text
@@ -212,6 +212,13 @@ def albertoPreprocessing(row,text_processor) :
 def mirkoPreprocessing(row,args,text_processor):
   SMILEY = load_dict_emoticon()  
   tweet = row.text
+  if(type(tweet) == float) :
+  	print('---------- float? ------------')
+  	print(tweet)
+  	print(row)
+  	return tweet
+  tweet = html.unescape(tweet)
+
 
   if args.normalizeNoise:
     tweet = str(" ".join(text_processor.pre_process_doc(tweet)))
@@ -234,15 +241,8 @@ def mirkoPreprocessing(row,args,text_processor):
   if args.doEmoji == True:
     number = emoji.emoji_count(tweet)
     if number != 0:
-      emos = emoji.emoji_lis(tweet)
-      for emo in emos:
-        singleMoji = str(emo['emoji'])
-        ita_M = ita_moji[ita_moji['emoji'] == singleMoji]
-        if(len(ita_M['text_ita'].values) != 0):
-          significato = ita_M['text_ita'].values[0]
-          tweet = tweet.replace(singleMoji,significato)
-        else:
-          tweet = tweet.replace(singleMoji,'')
+    	tweet = emoji.demojize(tweet,delimiters=("", ""))
+    	tweet = tweet.replace("_"," ")
   if args.removeEmoji == True:
     emoji_pattern = re.compile("["u"\U0001F600-\U0001F64F"  # emoticons 
                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -266,13 +266,13 @@ def mirkoPreprocessing(row,args,text_processor):
   if args.normalizeMention == True:
       tweet = ' '.join(re.sub("(@[A-Za-z0-9]+)", " @user ", tweet).split())
   if args.removeUrl == True:
-      tweet = ' '.join(re.sub("(\w+:\/\/\S+)", " ", tweet).split())
+  	tweet = ' '.join(re.sub("(\w+:\/\/\S+)", " ", tweet).split())
   if args.normalizeUrl == True:
       tweet = ' '.join(re.sub("(\w+:\/\/\S+)", " url ", tweet).split())
   if args.rawHashtag == False:
     elems = [tag.strip("#") for tag in tweet.split() if tag.startswith("#")]
     for elem in elems:
-        traslate = ' '.join(lm.split(elem))
+        traslate = ' '.join(wordninja.split(elem))
         if args.unpackHastags == True:
             tweet = tweet.replace("#"+elem,traslate)
         if args.tagAndUnpackHastags == True:
@@ -296,9 +296,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', type=str, help="Type task for bulid model", default='opos')
     parser.add_argument('--odir', type=str, help="output dir", default='./')
-    parser.add_argument('--trainSet', type=str, help="Path of csv for train ", default='./data/training_set_sentipolc16.csv')
-    parser.add_argument('--testSet', type=str, help="Path of csv for train ", default='./data/test_set_sentipolc16_gold2000.csv')
-    parser.add_argument('--preproc', type=str, help="Preprocessor approch (possibility alberto,mirko,raw) ", default='raw')
+    parser.add_argument('--trainSet', type=str, help="Path of csv for train ", default='./data/SemEval2017-task4-dev.subtask-A.english.INPUT.txt')
+    parser.add_argument('--testSet', type=str, help="Path of csv for train ", default='./data/SemEval2017-task4-test.subtask-A.csv')
+    parser.add_argument('--preproc', type=str, help="Preprocessor approch (possibility alberto,mirko,raw) ", default='mirko')
     parser.add_argument('--doShuffle', type=bool, help="do emoji translation", default=True)
 
     parser.add_argument('--doEmoji', type=bool, help="do emoji translation", default=True)
@@ -331,10 +331,14 @@ if __name__ == "__main__":
     OUTPUT_DIR = args.odir
     task =  args.task
     preproc = args.preproc
-    data_train = pd.read_csv(DATA_PATH_ITA,sep=',')
-    data_test = pd.read_csv(DATA_PATH_TEST_ITA,sep=",")
+    data_train = pd.read_csv(DATA_PATH_ITA,sep=';',encoding='utf-8',engine='c')
+    data_test = pd.read_csv(DATA_PATH_TEST_ITA,sep=";",encoding='utf_8')
+
+    print('***** TRAIN HEAD ***')
+    print(data_train.head())    
+
     if args.doShuffle == True:
-        data_train = data_train.reindex(np.random.permutation(data_train.index))
+    	data_train = data_train.reindex(np.random.permutation(data_train.index))
 
 
     if preproc == 'mirko':
@@ -345,9 +349,12 @@ if __name__ == "__main__":
             unpack_hashtags=False ,  
             tokenizer=SocialTokenizer(lowercase=args.doLower).tokenize,
             dicts = [ emoticons ])
+        data_train.text.astype(str)
+        data_test.text.astype(str)
         data_train['text_preprocessed'] = data_train.apply(lambda row: mirkoPreprocessing(row,args,text_processor), axis=1)
         data_test['text_preprocessed'] = data_test.apply(lambda row: mirkoPreprocessing(row,args,text_processor), axis=1)
     if preproc == 'alberto':
+
         text_processor = TextPreProcessor (
             remove=[ 'url' , 'email', 'user', 'percent', 'money', 'phone', 'time', 'date', 'number'] ,
             annotate={"hashtag"} ,
@@ -369,21 +376,27 @@ if __name__ == "__main__":
     
     if(task == 'opos'):
         OUTPUT_DIR += 'predictor_all_pos_'+preproc+'_'+args.runName
-        train_df = data_train[['text_preprocessed','opos']]
+        train_df = data_train[['text_preprocessed','sentiment']]
         train_df.text_preprocessed.astype(str)
-        train_df.opos.astype(float)
-        test_df = data_test[['idtwitter','text_preprocessed','opos']]
+        train_df.sentiment.replace('positive',1,inplace=True)
+        train_df.sentiment.replace('neutral',0,inplace=True)
+        train_df.sentiment.replace('negative',-1,inplace=True)
+        train_df = train_df[[train_df.sentiment != 'sentiment']]
+        train_df.sentiment.astype(float)
+        test_df = data_test[['text_preprocessed','sentiment']]
+        test_df = test_df[[test_df.sentiment != 'sentiment']]
         test_df.text_preprocessed.astype(str)  
-        test_df.opos.astype(float)
+
+        #test_df.opos.astype(float)
         model = trainer(train_df,OUTPUT_DIR,preproc,args)
     if(task == 'oneg'):
         OUTPUT_DIR += 'predictor_all_neg_'+preproc+'_'+args.runName
-        train_df = data_train[['text_preprocessed','oneg']]
+        train_df = data_train[['text_preprocessed','sentiment']]
         train_df.text_preprocessed.astype(str)
         train_df.oneg.astype(float)
-        test_df = data_test[['idtwitter','text_preprocessed','oneg']]  
+        test_df = data_test[['text_preprocessed','sentiment']]  
         test_df.text_preprocessed.astype(str)  
         test_df.oneg.astype(float)
         model = trainer(train_df,OUTPUT_DIR,preproc,args)
-        
-    tester(model,task,test_df,preproc,args.runName)
+    model.eval_model(test_df)
+#    tester(model,task,test_df,preproc,args.runName)
