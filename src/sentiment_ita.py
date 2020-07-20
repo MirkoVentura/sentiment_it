@@ -1,6 +1,6 @@
 from simpletransformers.classification import ClassificationModel
 import csv
-import pandas as pd 
+import pandas as pd
 import argparse
 import emoji
 from ekphrasis.classes.preprocessor import TextPreProcessor
@@ -198,7 +198,7 @@ def load_dict_emoticon():
         ": *":"amore"
         }
 
-def albertoPreprocessing(row,text_processor) :     
+def albertoPreprocessing(row,text_processor) :
     s = row.text
     s = s.lower()
     s = str(" ".join(text_processor.pre_process_doc(s)))
@@ -210,7 +210,7 @@ def albertoPreprocessing(row,text_processor) :
     return s
   
 def mirkoPreprocessing(row,args,text_processor):
-  SMILEY = load_dict_emoticon()  
+  SMILEY = load_dict_emoticon()
   tweet = row.text
 
   if args.normalizeNoise:
@@ -244,7 +244,7 @@ def mirkoPreprocessing(row,args,text_processor):
         else:
           tweet = tweet.replace(singleMoji,'')
   if args.removeEmoji == True:
-    emoji_pattern = re.compile("["u"\U0001F600-\U0001F64F"  # emoticons 
+    emoji_pattern = re.compile("["u"\U0001F600-\U0001F64F"  # emoticons
                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
@@ -253,7 +253,7 @@ def mirkoPreprocessing(row,args,text_processor):
                                "]+", flags=re.UNICODE)
     tweet = emoji_pattern.sub(r'', tweet)
   if args.normalizeEmoji == True:
-    emoji_pattern = re.compile("["u"\U0001F600-\U0001F64F"  # emoticons 
+    emoji_pattern = re.compile("["u"\U0001F600-\U0001F64F"  # emoticons
                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
@@ -283,9 +283,9 @@ def mirkoPreprocessing(row,args,text_processor):
             tweet = tweet.replace("#"+elem,"#hashtag")
   if args.removePunctuation:
     tweet = ' '.join(re.sub("[\.\,\!\?\:\;\-\=]", " ", tweet).split())
-  tweet = re.sub(r"\s+", ' ', tweet)   
+  tweet = re.sub(r"\s+", ' ', tweet)
   if args.doLower:
-  	return tweet.lower()
+      return tweet.lower()
   else:
     return tweet
 
@@ -319,6 +319,7 @@ if __name__ == "__main__":
     parser.add_argument('--normalizeNoise', type=bool, help="unpack hashtag for mirko preproc", default=False)
     parser.add_argument('--rawHashtag', type=bool, help="unpack hashtag for mirko preproc", default=False)
     parser.add_argument('--doLower', type=bool, help="unpack hashtag for mirko preproc", default=True)
+    parser.add_argument('--pureModel', type=bool, help="unpack hashtag for mirko preproc", default=False)
 
 
     parser.add_argument('--runName', type=str, help="name for run ", default='000')
@@ -342,28 +343,43 @@ if __name__ == "__main__":
             remove=[ 'email', 'percent', 'money', 'phone', 'time', 'date', 'number'] ,
             annotate={} ,
             fix_html=True ,
-            unpack_hashtags=False ,  
+            unpack_hashtags=False ,
             tokenizer=SocialTokenizer(lowercase=args.doLower).tokenize,
             dicts = [ emoticons ])
         data_train['text_preprocessed'] = data_train.apply(lambda row: mirkoPreprocessing(row,args,text_processor), axis=1)
         data_test['text_preprocessed'] = data_test.apply(lambda row: mirkoPreprocessing(row,args,text_processor), axis=1)
     if preproc == 'alberto':
+        text_processor_mirko = TextPreProcessor (
+            remove=[ 'email', 'percent', 'money', 'phone', 'time', 'date', 'number'] ,
+            annotate={} ,
+            fix_html=True ,
+            unpack_hashtags=False ,
+            tokenizer=SocialTokenizer(lowercase=args.doLower).tokenize,
+            dicts = [ emoticons ])
+
         text_processor = TextPreProcessor (
             remove=[ 'url' , 'email', 'user', 'percent', 'money', 'phone', 'time', 'date', 'number'] ,
             annotate={"hashtag"} ,
             fix_html=True ,
-            unpack_hashtags=True ,  
+            unpack_hashtags=True ,
             tokenizer=SocialTokenizer(lowercase=True).tokenize,
             dicts = [ emoticons ])
-        data_train['text_preprocessed'] = data_train.apply(lambda row: albertoPreprocessing(row,text_processor), axis=1)
-        data_test['text_preprocessed'] = data_test.apply(lambda row: albertoPreprocessing(row,text_processor), axis=1)
+
+        if args.pureModel == True:
+            data_train['text_preprocessed'] = data_train.apply(lambda row: albertoPreprocessing(row,text_processor), axis=1)
+            data_test['text_preprocessed'] = data_test.apply(lambda row: albertoPreprocessing(row,text_processor), axis=1)
+        else:
+            data_train['text_preprocessed'] = data_train.apply(lambda row: mirkoPreprocessing(row,args,text_processor_mirko), axis=1)
+            data_test['text_preprocessed'] = data_test.apply(lambda row: mirkoPreprocessing(row,args,text_processor_mirko), axis=1)
+
+        
     if preproc == 'raw':
         data_train['text_preprocessed'] = data_train['text']
         data_test['text_preprocessed'] = data_test['text']
 
     pd.set_option('display.max_colwidth', 800)
     print('***** TRAIN HEAD ***')
-    print(data_train.head())    
+    print(data_train.head())
     print('***** TEST HEAD ***')
     print(data_test.head())
     
@@ -373,7 +389,7 @@ if __name__ == "__main__":
         train_df.text_preprocessed.astype(str)
         train_df.opos.astype(float)
         test_df = data_test[['idtwitter','text_preprocessed','opos']]
-        test_df.text_preprocessed.astype(str)  
+        test_df.text_preprocessed.astype(str)
         test_df.opos.astype(float)
         model = trainer(train_df,OUTPUT_DIR,preproc,args)
     if(task == 'oneg'):
@@ -381,8 +397,8 @@ if __name__ == "__main__":
         train_df = data_train[['text_preprocessed','oneg']]
         train_df.text_preprocessed.astype(str)
         train_df.oneg.astype(float)
-        test_df = data_test[['idtwitter','text_preprocessed','oneg']]  
-        test_df.text_preprocessed.astype(str)  
+        test_df = data_test[['idtwitter','text_preprocessed','oneg']]
+        test_df.text_preprocessed.astype(str)
         test_df.oneg.astype(float)
         model = trainer(train_df,OUTPUT_DIR,preproc,args)
         
