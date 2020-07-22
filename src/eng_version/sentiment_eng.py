@@ -27,7 +27,7 @@ def trainer(train_df,OUTPUT_DIR,preproc,args):
         model_param = json.loads(f.read())
     model_param['output_dir'] = OUTPUT_DIR
     print(model_param)
-    model_name = 'bert-base-cased'
+    model_name = 'bert-large-cased'
     model = ClassificationModel('bert', model_name, args=model_param,num_labels=3)
     model.train_model(train_df);
     return model
@@ -38,8 +38,7 @@ def tester(model,test_df,preproc,runName):
     test_df.pred.replace(1,'positive',inplace=True)
     test_df.pred.replace(0,'neutral',inplace=True)
     test_df.pred.replace(0,'neutral',inplace=True)
-    to_save_df = test_df[['id','pred']]
-    to_save_df.to_csv(filename,index=None, sep='\t', mode='a', quotechar='"',quoting=csv.QUOTE_NONNUMERIC)
+    test_df.to_csv(filename,index=None, sep='|', mode='a', quotechar='"',quoting=csv.QUOTE_NONNUMERIC)
 
 def load_dict_emoticon():
     
@@ -282,7 +281,7 @@ def mirkoPreprocessing(row,args,text_processor):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--odir', type=str, help="output dir", default='./')
-    parser.add_argument('--trainSet', type=str, help="Path of csv for train ", default='./data/combined.tsv')
+    parser.add_argument('--trainSet', type=str, help="Path of csv for train ", default='./data/SemEval2017-task4-dev.subtask-A.english.INPUT.txt')
     parser.add_argument('--testSet', type=str, help="Path of csv for train ", default='./data/SemEval2017-task4-test.subtask-A.csv')
     parser.add_argument('--preproc', type=str, help="Preprocessor approch (possibility mirko or raw) ", default='mirko')
     parser.add_argument('--doShuffle', type=bool, help="shuffle examples", default=True)
@@ -314,7 +313,7 @@ if __name__ == "__main__":
     DATA_PATH_TEST_ITA = args.testSet
     OUTPUT_DIR = args.odir
     preproc = args.preproc
-    data_train = pd.read_csv(DATA_PATH_ITA,sep='\t',encoding='utf-8',engine='c')
+    data_train = pd.read_csv(DATA_PATH_ITA,sep=';',encoding='utf-8',engine='c')
     data_test = pd.read_csv(DATA_PATH_TEST_ITA,sep=";",encoding='utf_8')
 
     if args.doShuffle == True:
@@ -349,7 +348,7 @@ if __name__ == "__main__":
     train_df.sentiment.replace('negative',-1,inplace=True)
     train_df = train_df[[train_df.sentiment != 'sentiment']]
     train_df.sentiment.astype(float)
-    test_df = data_test[['id','text_preprocessed','sentiment']]
+    test_df = data_test[['text_preprocessed','sentiment']]
     test_df = test_df[[test_df.sentiment != 'sentiment']]
     test_df.text_preprocessed.astype(str)  
     model = trainer(train_df,OUTPUT_DIR,preproc,args)
